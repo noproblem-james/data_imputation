@@ -1,19 +1,26 @@
-# Capstone
+## Overview
+The following project was completed as a capstone project satisfying a principal graduation
+requirement for the Data Science Immersive Program offered by Galvanize, Inc.
+
+I had three weeks to complete this project.
+
+I wanted to tackle a problem with clear business value, and to that end, I partnered with NoviLabs, a company which does predictive modeling for the oil and gas industry.
+
 
 ## Objective
-The goal is to improve on a preexisting model that predicts oil production for new oil wells at different time horizons, in different geologies, under different economic conditions. For the sake of simplicity, we will focus on predicting cumulative oil production for newly drilled wells at 90 days (“IP90”, i.e., initial production at 90 days), and also at 180 days (“IP180”) and 365 days (“IP365”).
+The overarching goal was to improve on an existing model that predicts oil production for new wells at different time horizons, in different geologies, under different economic conditions. For the sake of simplicity, I focused on predicting cumulative oil production for newly drilled wells at three discrete time intervals: 90 days (“IP90”, i.e., initial production at 90 days), 180 days (“IP180”), and 365 days (“IP365”).
 
-A secondary goal is to investigate methods for dealing with missing data.
+I considered several different approaches to improving on the existing model, including intensive feature engineering and hyperparamter tuning. Although I did derive some features and trained a different type of machine learning model to significantly improve predictive accuracy, I focused my efforts on investigating methods for dealing with missing data. I felt this was both inherently interesting and had broad applicability to other domains.
 
 ## Business Context
 
  * The predictions are used to evaluate the return on investment of “completions designs” for newly drilled wells.
 * “Completions designs” are essentially blueprints for treating (i.e., "stimulating") newly drilled wells to enable liquid oil recovery.
 * There are certain parameters that are operator-controlled. The most important of these are:
-  * fluid amount (the amount of fluid pumped into the well to pressurize and fracture the rock around the bore hole)
-   * proppant amount (the amount of sand or similar material which is pumped in to "prop
+  * Fluid amount (the amount of fluid pumped into the well to pressurize and fracture the rock around the bore hole)
+   * Proppant amount (the amount of sand or similar material which is pumped in to "prop
 open" the fractures, to allow oil to flow through)
-   * stage count (the number of sections, or segments, a lateral well is divided into and then pressurized individually).
+   * Stage count (the number of sections, or segments, a lateral well is divided into and then pressurized individually).
 
 The predictions need to be generated on a pre-drilling basis - in other words, all data used to generate a prediction must be available before the well is drilled.
 
