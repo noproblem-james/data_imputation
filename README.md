@@ -1,5 +1,5 @@
 ## Overview
-The following project was completed as a capstone project satisfying a principal graduation
+This was completed as a capstone project satisfying a principal graduation
 requirement for the Data Science Immersive Program offered by Galvanize, Inc.
 
 I had three weeks to complete this project.
@@ -8,7 +8,10 @@ I wanted to tackle a problem with clear business value, and to that end, I partn
 
 
 ## Objective
-The overarching goal was to improve on an existing model that predicts oil production for new wells at different time horizons, in different geologies, under different economic conditions. For the sake of simplicity, I focused on predicting cumulative oil production for newly drilled wells at three discrete time intervals: 90 days (“IP90”, i.e., initial production at 90 days), 180 days (“IP180”), and 365 days (“IP365”).
+The overarching goal was to improve on an existing model that predicts oil production for new wells at different time horizons, in different geologies, under different economic conditions. For the sake of simplicity, I did the following things:
+* Ignored geological features, except the overall formation (Bakken or Three Forks), and used latitude and longitude and depth as a proxy measure.
+* Ignored economic conditions, as these factors (such as the forecasted price of oil) are typically modeled by the end user (drilling companies).
+* Focused on predicting cumulative oil production for newly drilled wells at three discrete time intervals: 90 days (“IP90”, i.e., initial production at 90 days), 180 days (“IP180”), and 365 days (“IP365”).
 
 I considered several different approaches to improving on the existing model, including intensive feature engineering and hyperparamter tuning. Although I did derive some features and trained a different type of machine learning model to significantly improve predictive accuracy, I focused my efforts on investigating methods for dealing with missing data. I felt this was both inherently interesting and had broad applicability to other domains.
 
@@ -22,7 +25,7 @@ I considered several different approaches to improving on the existing model, in
 open" the fractures, to allow oil to flow through)
    * Stage count (the number of sections, or segments, a lateral well is divided into and then pressurized individually).
 
-The predictions need to be generated on a pre-drilling basis - in other words, all data used to generate a prediction must be available before the well is drilled.
+* The predictions need to be generated on a pre-drilling basis - in other words, all data used to generate a prediction must be available before the well is drilled.
 
 ### Model Scoring
 There are many possible answers to the question: "What constitutes a good model?"
@@ -57,14 +60,17 @@ Industrial Commission) website.
 ## EDA
 * Create master data dictionary, with field descriptions, proportion of null values for each
 feature, and number of unique values for each feature.
-* Descriptive statistics of numerical features.
-* Scatter matrix for numerical features
-* Create date-time variables
+* Examine Descriptive statistics of numerical features (mean, median, variance, etc.).
+* Create a scatter matrix for numerical features.
+* Create plots for each categorical feature: unique value counts and median target value for each unique value.
+* Convert dates to useable format.
 
 ## Data Munging
-* Drop features with high percentage of null values
-* Drop features with high cardinality (i.e., those categorical features with a high number of unique values)
+* Drop features with high percentage of null values.
+* Drop features with high cardinality (i.e., those categorical features with a high number of unique values).
 * Drop other target variables.
+* Deal with missing values.
+* Binarize categorical features.
 
 ## Model Fitting
 * Increase number of trees in Extra Random Forest Model.
