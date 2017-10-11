@@ -17,8 +17,8 @@ I considered several different approaches to improving on the existing model, in
 
 ## Business Context
 
- * The predictions are used to evaluate the return on investment of “completions designs” for newly drilled wells.
-* “Completions designs” are essentially blueprints for treating (i.e., "stimulating") newly drilled wells to enable liquid oil recovery.
+ * The predictions are used to evaluate the return on investment of “completion designs” for newly drilled wells.
+* “Completion designs” are essentially blueprints for treating (i.e., "stimulating") newly drilled wells to enable liquid oil recovery.
 * There are certain parameters that are operator-controlled. The most important of these are:
   * Fluid amount (the amount of fluid pumped into the well to pressurize and fracture the rock around the bore hole)
    * Proppant amount (the amount of sand or similar material which is pumped in to "prop
@@ -31,27 +31,23 @@ open" the fractures, to allow oil to flow through)
 There are many possible answers to the question: "What constitutes a good model?"
 Some examples are:
 
-* Improved accuracy: Obviously the more accurate the model is, the better. Models are generally scored by RMSE (root mean squared error). A model with better RMSE score
-would be an improvement.
+* Improved accuracy: Obviously the more accurate the model is, the better. Models are generally scored by RMSE (root mean squared error). A model with a lower RMSE score
+constitutes an improvement.
 
 * Improved ‘stability’ against key features: An important use case is to
-predict the impact, or return on investment (ROI), of operator-controlled parameters described above. A model that is not stable relative to these
-parameters looks ‘bad’ to the end users, and causes them to lose trust in the model &
-methodology.
+predict the impact, or return on investment (ROI), of operator-controlled parameters described above. A model that is not stable relative to these parameters causes the end user to doubt the model and/or methodology.
 
-* Improved ‘accuracy’ against key features: As above, computing ROI against controllable
-parameters is the primary way users interact with the model. A model where the impacts of stage count, proppant, and fluid are most accurately represented is probably superior to a model where those features are ‘masked’ by other proxy signals.
+* Improved 'responsiveness' against key features: As above, computing ROI against controllable parameters is the primary way users interact with the model. A model where the impacts of stage count, proppant, and fluid are most accurately represented is probably superior to a model where those features are ‘masked’ by other proxy signals.
 
-* Improved performance across time intervals: the code we provided only generates a
-point-in-time prediction, but the purpose of the software, is to predict the “production curve” of a well - it’s performance across time. The current approach is to model different points in time independently, and apply a naive
+* Improved performance across time intervals: the code provided only generates a
+point-in-time prediction, but the purpose of the software, is to predict the “production curve” of a well - its performance across time. The current approach is to model different points in time independently, and apply a naive
 ‘smoothing’ step to enforce production increasing with time. Perhaps a different
 approach is better. We have provided actual (observed) values as well as our predictions
 to support analysis of your model versus ours in this context.
 
 
 ### Data
-* There is a separate test set (input.test.tsv) and training set
-(input.training.tsv ) TSV of relevant data extracted from the NDIC (North Dakota
+* Training and test sets came pre-defined. There is a separate test set (input.test.tsv) and training set (input.training.tsv ) of relevant data extracted from the NDIC (North Dakota
 Industrial Commission) website.
 
 * A description of the fields can be found in an HTML file.
@@ -110,6 +106,6 @@ Fit a model to data after imputation and compare error scores for the model, and
 * Add the feature back in, a few rows at a time, fit a model 50 times.
 * Do this for every imputation method.
 
-[insert gifs of demo dataframe, and of train-test-split methods]
+![Imputation Process](https://github.com/noproblem-james/data_imputation/images/imputation_process.gif)
 
 #### Result: Fancy imputation methods perform marginally better, depending on time horizon.
