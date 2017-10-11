@@ -106,6 +106,6 @@ Fit a model to data after imputation and compare error scores for the model, and
 * Add the feature back in, a few rows at a time, fit a model 50 times.
 * Do this for every imputation method.
 
-!(https://github.com/noproblem-james/data_imputation/blob/master/images/imputation_process.gif)
+![alt text](https://github.com/noproblem-james/data_imputation/blob/master/images/imputation_process.gif "Data imputation process")
 
 #### Result: Fancy imputation methods perform marginally better, depending on time horizon.
