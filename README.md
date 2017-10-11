@@ -82,30 +82,50 @@ feature, and number of unique values for each feature.
 After EDA and Munging...
 
 ### Phase One: Mask
+####(Artificial Imputation)
+Remove values for a feature of interest, apply each imputation method to fill those missing values, compute error scores for actual versus imputed values
 
 #### Procedure:
-* Nonnumeric Features dropped
-* Dropped rows with null values in that numeric feature column
-* Retained rows with null values in other null columns
-* Removed 10% of data at random, checked mean squared error
-* Performing the above tests for every feature in the dataframe
-* Remove larger percentages of data for every feature 10%, 20%, 30%, etc.
+* Drop all non-numeric features.
+* Select a feature of interest.
+* Drop rows with null values for that feature of interest.
+* Retain rows with null values in other features.
+* Remove 10% of data at random from column that contains feature of interest.
+* Impute values for that subset of rows where value has been removed.
+* Compute an error score for actual values versus imputed values.
+* Perform the above test after removing larger percentages of data for every feature 10%, 20%, 30%, etc.
+* Perform the above test using different imputation methods.
+* Perform the above test for every feature in the dataframe.
 
 [Insert gifs with demo dataframe]
 
 #### Result: Fancy imputation methods perform significantly better
 
 ### Phase Two: Fit
-Fit a model to data after imputation and compare error scores for the model, and not the imputation method directly.
+#### (Impute actually missing values, then fit a model.)
+Fit a model to data after imputation and compare error scores for the model, not the imputation method per se.
 
 #### Procedure:
-* Including categorical features this time, which must be binarized for both the train and the test sets in a consistent way.
-* Nonnumeric features binarized and rejoined to filled dataframe.
-* Also, the training set must be filled on its own, the test set must be filled attached to the training set.
-* Fitting model on two different training sets: one where important feature is missing and one where it isn't.
-* Add the feature back in, a few rows at a time, fit a model 50 times.
-* Do this for every imputation method.
+* Include non-numeric features.
+* Select a feature of interest.
+* Split the dataframe into two separate dataframes:
+  * Dataframe A, which contains all rows that are *not* missing values for the feature of interest
+  * Dataframe B, which contains all rows that *are* missing values for the feature of interest
+* Fill all other missing values in Dataframe A
+* Fit a model to Dataframe A.
+* Calculate an error score for model, by comparing the actual values of the target versus the model's predictions about the values of the target.
+* Fill, fit, and score multiple times to get a distribution of model scores.
+* Add a subset of the rows from Dataframe B (which are missing values for the feature of interest) to Dataframe A (which are not missing values for the feature of interest).
+* Fit, fill, and score (multiple times), with additional rows added.
+* Add more rows from Dataframe B to Dataframe A, and repeat the process.
+* Perform the above test for every imputation method.
+
+#### This procedure created some complications:
+* Non-numeric features must be binarized and rejoined to filled dataframe in a way that is consistent for the train and the test set.
+* Missing values in the training set must be filled without the test set (to avoid data leakage), and missing values in the test set must be filled when attached to the training set (to allow imputation and prediction for a test dataframe that could be as small as a single observation).
+
+### I developed the following routine to do this:
 
 ![alt text](https://github.com/noproblem-james/data_imputation/blob/master/images/imputation_process.gif "Data imputation process")
 
-#### Result: Fancy imputation methods perform marginally better, depending on time horizon.
+#### Result: Fancy imputation methods perform marginally better, depending on the dataset used, the feature of interest selected, and the time horizon of the target variable.
