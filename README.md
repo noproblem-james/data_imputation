@@ -1,19 +1,16 @@
 ## Overview
-This was completed as a capstone project satisfying a principal graduation
-requirement for the Data Science Immersive Program offered by Galvanize, Inc.
+I completed the following capstone project over the course of three weeks in order to satisfy a principal graduation requirement for the Data Science Immersive Program offered by Galvanize, Inc.
 
-I had three weeks to complete this project.
-
-I wanted to tackle a problem with clear business value, and to that end, I partnered with NoviLabs, a company which does predictive modeling for the oil and gas industry.
+I wanted to tackle a problem with clear business value, and to that end, I partnered with a company which does predictive modeling for the oil and gas industry.
 
 
 ## Objective
 The overarching goal was to improve on an existing model that predicts oil production for new wells at different time horizons, in different geologies, under different economic conditions. For the sake of simplicity, I did the following things:
-* Ignored geological features, except the overall formation (Bakken or Three Forks), and used latitude and longitude and depth as a proxy measure.
+* Ignored geological features, except the overall formation (Bakken or Three Forks), and used latitude and longitude and depth as a proxy measure for geology.
 * Ignored economic conditions, as these factors (such as the forecasted price of oil) are typically modeled by the end user (drilling companies).
 * Focused on predicting cumulative oil production for newly drilled wells at three discrete time intervals: 90 days (“IP90”, i.e., initial production at 90 days), 180 days (“IP180”), and 365 days (“IP365”).
 
-I considered several different approaches to improving on the existing model, including intensive feature engineering and hyperparamter tuning. Although I did derive some features and trained a different type of machine learning model to significantly improve predictive accuracy, I focused my efforts on investigating methods for dealing with missing data. I felt this was both inherently interesting and had broad applicability to other domains.
+I considered several different approaches to improving the existing model, including intensive feature engineering and hyperparamter tuning. Although I did derive some features and train a different type of machine learning model to significantly improve predictive accuracy, I focused my efforts on investigating methods for dealing with missing data. I felt this was both inherently interesting and had broad applicability to other domains.
 
 ## Business Context
 
@@ -124,7 +121,12 @@ Fit a model to data after imputation and compare error scores for the model, not
 * Non-numeric features must be binarized and rejoined to filled dataframe in a way that is consistent for the train and the test set.
 * Missing values in the training set must be filled without the test set (to avoid data leakage), and missing values in the test set must be filled when attached to the training set (to allow imputation and prediction for a test dataframe that could be as small as a single observation).
 
+[insert gif of model-fitting procedure]
+
 ### I developed the following routine to do this:
+1. First, merge train and test sets.
+2. Then, split merged set into a dataframe with numeric features and and non-numeric features.
+3. Binarize the non-numeric dataframe.
 
 ![alt text](https://github.com/noproblem-james/data_imputation/blob/master/images/imputation_process.gif "Data imputation process")
 
