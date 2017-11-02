@@ -127,9 +127,11 @@ Impute actually missing values, then fit a model and compare error scores for th
 1. First, merge train and test sets (if separate).
 2. Then, split merged set into a dataframe with only numeric features and a dataframe with only non-numeric features. Numeric features represent variables that take values that either integers or floating-point decimal numbers. Nonnumeric features are categorical variables that take values like "Male" or "Female".
 3. Binarize the non-numeric dataframe using a one-hot encoder. This sets null (missing values) as the reference (baseline) value for all other values that each categorical variable can take, ensuring there are no nulls for these.
-4. For numeric variables, the train and the test set must be treated separately.
-  **a.** For the train set, drop the test set *before* imputation, to avoid data leakage.
-  **b** For the test set, drop the train set *after* imputation, to utilize all known data to make an accurate estimate for imputation purposes.
+4. For numeric variables, the train and the test set must be treated separately.  
+
+  **a.** For the train set, drop the test set *before* imputation, to avoid data leakage.  
+  
+  **b.** For the test set, drop the train set *after* imputation, to utilize all known data to make an accurate estimate for imputation purposes.
 5. Rejoin the binarized categorical variables to the imputed numeric variables, for both training and test sets.
 
 
