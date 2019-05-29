@@ -1,7 +1,7 @@
 ## Overview
 I completed the following capstone project over the course of three weeks in order to satisfy a principal graduation requirement for the Data Science Immersive Program offered by Galvanize, Inc.
 
-I wanted to tackle a problem with clear business value, and to that end, I partnered with a company which does predictive modeling for the oil and gas industry.
+I wanted to tackle a problem with clear business value, and to that end, I partnered with a company that does predictive modeling for the oil and gas industry.
 
 
 ## Objective
