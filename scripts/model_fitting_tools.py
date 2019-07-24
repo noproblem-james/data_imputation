@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
@@ -37,5 +38,11 @@ def eval_model(model, X_test, y_test, y_train):
 
     return mse, mae, rmse, rrse
 
-def most_important_features(model, feature_array, n=10):
-    return feature_array[np.argsort(model.feature_importances_)[:-n:-1]]
+
+def get_rig_df(scikit_model, x_cols):
+    feat_imp_df = (pd.DataFrame.from_dict({"feature": np.array(x_cols), 
+                                           "importance": scikit_model.feature_importances_})
+               .set_index("feature")
+               .sort_values("importance", ascending=True)
+              )
+    return feat_imp_df
