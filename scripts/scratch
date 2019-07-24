@@ -151,3 +151,66 @@
 #     if string_flag == True:
 #         df_train["flag_str"] = "train"
 #         df_test["flag_str"] = "test"
+
+# Plotting
+
+# import plotly.plotly as py
+# import plotly.graph_objs as go
+
+def plot_errors(feature):
+    current = feature
+    N = 10
+    x_axis = np.linspace(10, 100, 10)
+#     svd_y = svd_impute_test.loc[current].values
+    knn_y = percent_imputation_results[(percent_imputation_results["imputer"] == "KNN") & (percent_imputation_results["feature"] == current)]["mae"]
+    mice_y = percent_imputation_results[(percent_imputation_results["imputer"] == "MICE") & (percent_imputation_results["feature"] == current)]["mae"]
+    soft_y = percent_imputation_results[(percent_imputation_results["imputer"] == "Soft Impute") & (percent_imputation_results["feature"] == current)]["mae"]
+    mean_y = percent_imputation_results[(percent_imputation_results["imputer"] == "Mean") & (percent_imputation_results["feature"] == current)]["mae"]
+    median_y = percent_imputation_results[(percent_imputation_results["imputer"] == "Median") & (percent_imputation_results["feature"] == current)]["mae"]
+
+    # Create traces
+    trace0 = go.Scatter(
+        x =  x_axis,
+        y = knn_y,
+        mode = 'lines+markers',
+        name = 'KNN Imputer'
+    )
+    trace1 = go.Scatter(
+        x =  x_axis,
+        y = median_y,
+        mode = 'lines+markers',
+        name = 'Median Imputer'
+    )
+
+    trace2 = go.Scatter(
+        x = x_axis,
+        y = mean_y,
+        mode = 'lines+markers',
+        name = 'Mean Imputer'
+    )
+    trace3 = go.Scatter(
+        x = x_axis,
+        y = mice_y,
+        mode = 'lines+markers',
+        name = 'MICE Imputer'
+    )
+    trace4 = go.Scatter(
+        x = x_axis,
+        y = soft_y,
+        mode = 'lines+markers',
+        name = 'Softmax Imputer'
+    )
+    
+
+
+    data = [trace0, trace1, trace2, trace3, trace4]
+
+
+    layout = dict(title = current,
+                  xaxis = dict(title = 'Percent of data imputed'),
+                 yaxis = dict(title = 'Mean Absolute Error'),
+                  )
+
+    fig = dict(data=data, layout=layout)
+
+    return py.iplot(fig, filename='line-mode')
