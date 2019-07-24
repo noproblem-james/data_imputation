@@ -13,7 +13,7 @@ def drop_blacklist(df, exceptions={}, blacklist_patterns=[]):
     df = df.copy()
     blacklisted_cols = []
     before_shape = df.shape
-    
+
     for col in df.columns:
         if col in exceptions:
             continue
@@ -30,32 +30,34 @@ def drop_blacklist(df, exceptions={}, blacklist_patterns=[]):
     return df
 
 
-def drop_high_cardinality(df, exceptions={}, id_col=""):
+def drop_hi_lo_card(df, exceptions={}, id_col=""):
     '''
     Drop cardinality == 0, cardinality == 1, cardinality == n,
     or (type='categorical and cardinality > 0.2 * n)
     '''
     print(f"Shape before cardinality removal: {df.shape}")
-    
+
     df = df.copy()
-    
+
+    num_rows = df.shape[0]
+
     for col in df.columns:
         if col in exceptions:
             continue
         else:
-            if df[col].count() == 0:
+            nuniques = df[col].nunique()
+
+            if nuniques == 0:
                 # drop cardinality = 0 (empty columns)
                 df.drop(col, inplace=True, axis=1)
-#                 print 'Dropped {} since it was empty'.format(col)
-            elif df[col].count() == 1:
-                # drop cardinality = 1
+            elif nuniques == 1:
+                # drop cardinality = 1 (val same for every row)
                 df.drop(col, inplace=True, axis=1)
-#                 print 'Dropped {} since it was always the same'.format(col)
-            elif df[col].count() == df[col].value_counts().idxmax():
-                # drop cardinality == count
+            elif nuniques == df.shape[0]:
+                # drop unique id... different for every column
                 df.drop(col, inplace=True, axis=1)
 #                 print 'Dropped {} since it was always unique'.format(col)
-            elif col != id_col and df[col].dtype == 'object' and len(df[col].value_counts()) > len(df) * 0.2:
+            elif col != id_col and df[col].dtype == 'object' and len(df[col].value_counts()) > num_rows * 0.2:
                 df.drop(col, inplace=True, axis=1)
 #                 print 'Dropped {} since it was categorical and had a high cardinality'.format(col)
 
@@ -65,7 +67,7 @@ def drop_high_cardinality(df, exceptions={}, id_col=""):
 def drop_high_nulls(df, exceptions={}, cutoff=0.5):
     print(f"Shape before high null removal: {df.shape}")
     df = df.copy()
-    
+
     for col in df.columns:
         if col in exceptions:
             continue
@@ -73,10 +75,60 @@ def drop_high_nulls(df, exceptions={}, cutoff=0.5):
             prop_missing = df[col].isnull().sum() / float(df[col].shape[0])
             if prop_missing > cutoff:
                 df.drop(col, inplace=True, axis=1)
-                
+
     print(f"Shape before high null removal: {df.shape}")
     return df
 
+
+def reduce_cardinality(df, cols=None, cardinality=5, threshold=15):
+    '''
+    Parameters
+    ----------
+    df: a pandas DataFrame
+    cols: a list of categorical columns
+    cardinality: a maximum cardinality (i.e., a maximum number of categories)
+    threshold:  a minimum value count threshold (a category must have, at minimum, this number of observations)
+
+    Returns
+    -------
+    df: a pandas DataFrame, indentical to the original, except that the categorical columns specified have at most
+    number of categories specified by `max cardinality` (including the 'OTHER' category), AND every category has at least
+    as many observations as specified by value count threshold
+    '''
+
+    if cols == None:
+        cols = df.select_dtypes(include="O").columns.values.tolist()
+
+    df = df.copy()
+
+    def create_rollup(col):
+        rollup_dict = {}
+        for idx, row in col.value_counts().reset_index().iterrows():
+            if (idx < cardinality) and (row[col.name] >= threshold):
+                rollup_dict[row['index']] = row['index']
+            else:
+                rollup_dict[row['index']]= "OTHER"
+        new_series = col.map(rollup_dict)
+        return new_series
+
+    df[cols] = df[cols].apply(create_rollup)
+
+    return df
+
+def haversine_distance(s_lat, s_lng, e_lat, e_lng):
+   '''
+   https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+   '''
+   R = 3959.87433  # approximate radius of earth in mi
+
+   s_lat = s_lat*np.pi/180.0
+   s_lng = np.deg2rad(s_lng)
+   e_lat = np.deg2rad(e_lat)
+   e_lng = np.deg2rad(e_lng)
+
+   d = np.sin((e_lat - s_lat)/2)**2 + np.cos(s_lat)*np.cos(e_lat) * np.sin((e_lng - s_lng)/2)**2
+
+   return 2 * R * np.arcsin(np.sqrt(d)) * 5280
 
 
 #                 print 'Dropped {} since it had a high proportion of missing values. {}'.format(col, prop_missing)
