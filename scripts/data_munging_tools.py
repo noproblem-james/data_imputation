@@ -113,6 +113,41 @@ def reduce_cardinality(df, cols=None, cardinality=5, threshold=15):
 
     return df
 
+
+
+from sklearn.metrics.pairwise import euclidean_distances
+
+def calc_midpoint(df, lat_1_col, lng_1_col, lat_2_col, lng_2_col):
+    df = df.copy().filter([lat_1_col, lng_1_col, lat_2_col, lng_2_col])
+    dist_x = df[lng_2_col] - df[lng_1_col]
+    dist_y = df[lat_2_col] - df[lat_1_col]
+    half_x = dist_x / 2
+    half_y = dist_y / 2
+    mid_x = df[lng_1_col] + half_x
+    mid_y = df[lat_1_col] + half_y
+    df["midpoint_lat"] = mid_y
+    df["midpoint_lng"] = mid_x
+    return df
+
+## TODO Update this function to user Haversine distnace
+def find_distance_to_nearest_neighbor(df, lat_col_1, lng_1_col, lat_2_col, lng_2_col):
+    midpoint_df = (df.copy()
+                       .filter([lat_col_1, lng_1_col, lat_2_col, lng_2_col])
+                       .pipe(calc_midpoint, lat_col_1, lng_1_col, lat_2_col, lng_2_col)
+                       .filter(["midpoint_lat", "midpoint_lng"])
+                       .dropna()
+                  )
+    euclid_dist_df = pd.DataFrame(euclidean_distances(midpoint_df, midpoint_df), index=midpoint_df.index,
+                                  columns=midpoint_df.index)
+    no_self = euclid_dist_df[euclid_dist_df != 0].copy()
+    df["shortest_dist"] = no_self.min(axis=1)
+    return df
+
+
+
+
+
+
 def haversine_distance(s_lat, s_lng, e_lat, e_lng):
    '''
    https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
