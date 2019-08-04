@@ -1,7 +1,98 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import re
+from scipy.stats import entropy
 
+
+def calc_entropy(df):
+    cat_df = df.copy().select_dtypes("O")
+    result = []
+    for col in cat_df.columns:
+        series = cat_df[col]
+        counts = series.value_counts().values
+        col_ent = {"col": col, "entropy": entropy(counts)}
+        result.append(col_ent)
+    df_result = pd.DataFrame(result).set_index("col")
+    return df_result
+
+def make_df_summary(df, target_col=None):
+    perc_missing = df.isnull().sum() / df.shape[0] * 100
+    dtype = df.dtypes
+    nunique = df.nunique()
+    coeff_var = df.std() / df.mean()
+    corr_target = df.corr()[target_col]
+    
+    df_describe = df.describe().T
+    df_entropy = calc_entropy(df)
+    
+    df_summary = (pd.DataFrame([dtype, perc_missing, nunique, coeff_var, corr_target], 
+                    index=["dtype", "perc_missing", "num_unique", "coeff_var", "corr_target"])
+                    .T
+                    .reset_index()
+                    .rename(columns={"index": "column"})
+                    .sort_values(["dtype", "column"])
+                    .set_index("column")
+                    .join(df_describe)
+                    .join(df_entropy)
+                    .filter(["dtype", "num_unique", "perc_missing",
+                             "mean", "std", "coeff_var", "entropy",
+                             "min", "25%", "50%", "75%", "max",
+                             "corr_target"
+                            ])
+                 )
+    
+    return df_summary
+
+
+def inspect_cat_plots(df, cat_col, target_col):
+    """
+    Pass a dataframe, a categorical feature, and the (continuous) target
+
+    Returns a two barcharts for each categorical feature:
+     1. a count of the number of unique values in that column
+     2. the median score of the target column fo each unique value in that column.
+     """
+    sub_df = df.filter([cat_col, target_col]).assign(**{cat_col: lambda x: x[cat_col].fillna("NaN")})
+    fig, ax = plt.subplots(1, 2, figsize=(18, 7))
+    sns.countplot(data=sub_df, x=cat_col, ax=ax[0])
+    
+    for item in ax[0].get_xticklabels() + ax[1].get_xticklabels():
+        item.set_rotation(45)
+    
+    sns.boxplot(data=sub_df, x=cat_col, y=target_col, ax=ax[1])
+    plt.show()
+    
+    
+def make_strip_plots(df, col, lims_dict):
+    lims = lims_dict[col]
+    sub_df = df.filter([col])
+    fig, ax = plt.subplots(1, 2, figsize=(18, 7))
+    sns.stripplot(data=sub_df, x=col, ax=ax[0])
+    
+    print(lims)
+    
+    if lims["max"] < float("inf"):
+        upper = lims["max"]
+        ax[0].axvline(upper, color="r")
+        before_filter = sub_df.shape[0]
+        queried_df = sub_df.query(f"{col} < @upper")
+        after_filter = queried_df.shape[0]
+        print(before_filter - after_filter)
+        sns.stripplot(data=queried_df, x=col, ax=ax[1])
+        
+    if lims["min"] > 0:
+        lower = lims["min"]
+        ax[0].axvline(lower, color="r")
+        before_filter = sub_df.shape[0]
+        queried_df = sub_df.query(f"{col} > @lower")
+        after_filter = queried_df.shape[0]
+        print(before_filter - after_filter)
+        sns.stripplot(data=queried_df, x=col, ax=ax[1])
+    
+    plt.show()
+    
 
 def drop_blacklist(df, exceptions={}, blacklist_patterns=[]):
     '''
@@ -25,6 +116,21 @@ def drop_blacklist(df, exceptions={}, blacklist_patterns=[]):
     after_shape = df.shape
     num_dropped = before_shape[0] - after_shape[0]
     print(f"Number of columns dropped for blacklist_pattern: {num_dropped}")
+    return df
+
+def remove_outiers(df, lims_dict):
+    df = df.copy()
+    for feature, limits in lims_dict.items():
+        print(feature)
+        up_lim = limits["max"]
+        lo_lim = limits["min"]
+        
+        max_mask = df[feature] > up_lim
+        min_mask = df[feature] < lo_lim
+        
+        both_mask = min_mask | max_mask
+                
+        df.loc[both_mask, feature] = np.nan 
     return df
 
 
