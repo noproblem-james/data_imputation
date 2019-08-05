@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 from scipy.stats import entropy
+from sklearn.metrics.pairwise import euclidean_distances
+
 
 
 def calc_entropy(df):
@@ -23,11 +25,11 @@ def make_df_summary(df, target_col=None):
     nunique = df.nunique()
     coeff_var = df.std() / df.mean()
     corr_target = df.corr()[target_col]
-    
+
     df_describe = df.describe().T
     df_entropy = calc_entropy(df)
-    
-    df_summary = (pd.DataFrame([dtype, perc_missing, nunique, coeff_var, corr_target], 
+
+    df_summary = (pd.DataFrame([dtype, perc_missing, nunique, coeff_var, corr_target],
                     index=["dtype", "perc_missing", "num_unique", "coeff_var", "corr_target"])
                     .T
                     .reset_index()
@@ -42,7 +44,7 @@ def make_df_summary(df, target_col=None):
                              "corr_target"
                             ])
                  )
-    
+
     return df_summary
 
 
@@ -57,22 +59,22 @@ def inspect_cat_plots(df, cat_col, target_col):
     sub_df = df.filter([cat_col, target_col]).assign(**{cat_col: lambda x: x[cat_col].fillna("NaN")})
     fig, ax = plt.subplots(1, 2, figsize=(18, 7))
     sns.countplot(data=sub_df, x=cat_col, ax=ax[0])
-    
+
     for item in ax[0].get_xticklabels() + ax[1].get_xticklabels():
         item.set_rotation(45)
-    
+
     sns.boxplot(data=sub_df, x=cat_col, y=target_col, ax=ax[1])
     plt.show()
-    
-    
+
+
 def make_strip_plots(df, col, lims_dict):
     lims = lims_dict[col]
     sub_df = df.filter([col])
     fig, ax = plt.subplots(1, 2, figsize=(18, 7))
     sns.stripplot(data=sub_df, x=col, ax=ax[0])
-    
+
     print(lims)
-    
+
     if lims["max"] < float("inf"):
         upper = lims["max"]
         ax[0].axvline(upper, color="r")
@@ -81,7 +83,7 @@ def make_strip_plots(df, col, lims_dict):
         after_filter = queried_df.shape[0]
         print(before_filter - after_filter)
         sns.stripplot(data=queried_df, x=col, ax=ax[1])
-        
+
     if lims["min"] > 0:
         lower = lims["min"]
         ax[0].axvline(lower, color="r")
@@ -90,9 +92,9 @@ def make_strip_plots(df, col, lims_dict):
         after_filter = queried_df.shape[0]
         print(before_filter - after_filter)
         sns.stripplot(data=queried_df, x=col, ax=ax[1])
-    
+
     plt.show()
-    
+
 
 def drop_blacklist(df, exceptions={}, blacklist_patterns=[]):
     '''
@@ -124,49 +126,16 @@ def remove_outiers(df, lims_dict):
         print(feature)
         up_lim = limits["max"]
         lo_lim = limits["min"]
-        
+
         max_mask = df[feature] > up_lim
         min_mask = df[feature] < lo_lim
-        
+
         both_mask = min_mask | max_mask
-                
-        df.loc[both_mask, feature] = np.nan 
+
+        df.loc[both_mask, feature] = np.nan
     return df
 
 
-def drop_hi_lo_card(df, exceptions={}, id_col=""):
-    '''
-    Drop cardinality == 0, cardinality == 1, cardinality == n,
-    or (type='categorical and cardinality > 0.2 * n)
-    '''
-    print(f"Shape before cardinality removal: {df.shape}")
-
-    df = df.copy()
-
-    num_rows = df.shape[0]
-
-    for col in df.columns:
-        if col in exceptions:
-            continue
-        else:
-            nuniques = df[col].nunique()
-
-            if nuniques == 0:
-                # drop cardinality = 0 (empty columns)
-                df.drop(col, inplace=True, axis=1)
-            elif nuniques == 1:
-                # drop cardinality = 1 (val same for every row)
-                df.drop(col, inplace=True, axis=1)
-            elif nuniques == df.shape[0]:
-                # drop unique id... different for every column
-                df.drop(col, inplace=True, axis=1)
-#                 print 'Dropped {} since it was always unique'.format(col)
-            elif col != id_col and df[col].dtype == 'object' and len(df[col].value_counts()) > num_rows * 0.2:
-                df.drop(col, inplace=True, axis=1)
-#                 print 'Dropped {} since it was categorical and had a high cardinality'.format(col)
-
-    print(f"Shape after cardinality removal: {df.shape}")
-    return df
 
 def drop_high_nulls(df, exceptions={}, cutoff=0.5):
     print(f"Shape before high null removal: {df.shape}")
@@ -221,8 +190,6 @@ def reduce_cardinality(df, cols=None, cardinality=5, threshold=15):
 
 
 
-from sklearn.metrics.pairwise import euclidean_distances
-
 def calc_midpoint(df, lat_1_col, lng_1_col, lat_2_col, lng_2_col):
     df = df.copy().filter([lat_1_col, lng_1_col, lat_2_col, lng_2_col])
     dist_x = df[lng_2_col] - df[lng_1_col]
@@ -250,10 +217,6 @@ def find_distance_to_nearest_neighbor(df, lat_col_1, lng_1_col, lat_2_col, lng_2
     return df
 
 
-
-
-
-
 def haversine_distance(s_lat, s_lng, e_lat, e_lng):
    '''
    https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
@@ -272,49 +235,64 @@ def haversine_distance(s_lat, s_lng, e_lat, e_lng):
 
 def parse_choke_size(x):
     replace_dict = {"a": "6", "s": "5", "i": "1", "0pen": "1", "b": "6", "g": "9"}
-    
+
     if x == "na":
         # presumably it has no choke, ie it is open, therefore 1
         return 1
-    
+
     if type(x) == float and np.isnan(x):
         return x
-    
+
     if type(x) != str:
         print(x, type(x))
         return np.nan
-    
+
     if "/" not in x:
         print(x)
         return np.nan
-    
+
     for k, v in replace_dict.items():
         x = x.replace(k, v)
-        
+
     x = x.strip("'").strip("_").strip(" ").strip("'")
-    
+
     fraction = x.split("/")
     if len(fraction) != 2:
         return np.nan
     num, denom = fraction[0], fraction[1]
-    
+
     try:
         num = int(num)
         denom = int(denom)
-        
+
     except:
 #         print(f"couldnt_convert {num} / {denom}")
         return np.nan
-    
-    
+
+
     if num == denom:
         # 64/64 would be open ratio, but assume it is open
         return 1
-    
+
     elif num > denom:
         # something went wrong. cant be more open than open.
         return np.nan
-    
+
     else:
         decimal = num / denom
         return decimal
+
+
+def normalize_formation_helper(x):
+    if x in {"bakken", "three forks"}:
+        return x
+    else:
+        return np.nan
+
+def normalize_formation(df, primary_col, secondary_col):
+    df = df.copy()
+    fill_values = df[secondary_col].str.lower().apply(lambda x: normalize_formation_helper(x))
+    df["target_formation"] = df[primary_col].apply(lambda x: normalize_formation_helper(x)).fillna(fill_values)
+    df = pd.get_dummies(data=df, columns=["target_formation"], prefix="formation")
+    df.drop([primary_col, secondary_col], axis=1, inplace=True)
+    return df
