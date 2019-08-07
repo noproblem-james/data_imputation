@@ -64,8 +64,15 @@ if __name__ == '__main__':
     full_df = munge_df(concat_df, coord_cols, target_col, model_features, thresh_dict)
 
     #resplit into test and train and save
-    train_df = full_df.copy().query("data_group == 'TRAIN'")
-    test_df =  full_df.copy().query("data_group == 'TEST'")
+    train_df = (full_df.copy()
+                       .query("data_group == 'TRAIN'")
+                       .drop("data_group", axis=1)
+               )
+               
+    test_df =  (full_df.copy()
+                      .query("data_group == 'TEST'")
+                      .drop("data_group", axis=1)
+               )
 
     full_df.to_csv("../data/full_df.tsv", sep="\t")
     train_df.to_csv("../data/train_df.tsv", sep="\t")
