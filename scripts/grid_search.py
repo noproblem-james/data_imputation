@@ -32,7 +32,7 @@ def fit_model(train_X, y_train, X_test, y_test, random_state=1984):
 
     pipe_grid = {'gradientboostingregressor__' + k : v for  k, v in gbr_grid_params.items()}
 
-    clf = GridSearchCV(pipe,
+    gscv = GridSearchCV(pipe,
                        pipe_grid,
                        cv=5,
                        scoring='neg_median_absolute_error',
@@ -41,12 +41,12 @@ def fit_model(train_X, y_train, X_test, y_test, random_state=1984):
                        n_jobs=-1)
 
 
-    clf.fit(X_train, y_train)
+    gscv.fit(X_train, y_train)
 
-    best_params = clf.best_params_
+    best_params = gscv.best_params_
     print("Best Params: ", best_params)
 
-    model = clf.best_estimator_
+    model = gscv.best_estimator_
 
     filename = '../results/finalized_model.pickle'
     pickle.dump(model, open(filename, 'wb'))

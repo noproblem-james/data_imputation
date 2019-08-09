@@ -68,7 +68,7 @@ if __name__ == '__main__':
                        .query("data_group == 'TRAIN'")
                        .drop("data_group", axis=1)
                )
-               
+
     test_df =  (full_df.copy()
                       .query("data_group == 'TEST'")
                       .drop("data_group", axis=1)
