@@ -284,8 +284,10 @@ def parse_choke_size(x):
 
 
 def normalize_formation_helper(x):
-    if x in {"bakken", "three forks"}:
+    if x == "bakken":
         return x
+    elif x == "three forks":
+        return "three_forks"
     else:
         return np.nan
 
