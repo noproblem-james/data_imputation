@@ -53,29 +53,6 @@ def fit_model(train_X, y_train, X_test, y_test, random_state=1984):
 
     return model
 
-def make_preds(X_test, target_col, model):
-    y_hat = model.predict(X_test)
-
-    eval_df = (pd.concat([y_test.reset_index(),
-                          pd.Series(y_hat, name="pred").round(2)], axis=1)
-               .set_index("api")
-               .rename(columns={target_col: "actual"})
-               .assign(resid=lambda x: x["pred"] - x["actual"])
-               .assign(perc_resid=lambda x: x["resid"] / x["actual"] * 100)
-               .assign(abs_resid=lambda x: x["resid"].abs())
-               .assign(abs_perc_resid=lambda x: x["abs_resid"] / x["actual"] * 100)
-                )
-
-    eval_df.to_csv("../results/eval_df.tsv", sep="\t")
-
-    mape = eval_df.abs_perc_resid.mean()
-    mae = eval_df.abs_resid.mean()
-    mape_adj = eval_df.abs_resid.mean() / eval_df.actual.mean() * 100
-    print("MAE: ", mae, "\nMAPE: ", mape, "\nadj MAPE: ", mape_adj)
-
-    return eval_df
-
-
 
 if __name__ == '__main__':
     train_df = pd.read_csv("../data/train_df.tsv", sep="\t", index_col="api")
@@ -85,7 +62,11 @@ if __name__ == '__main__':
     X_train, y_train = mft.X_y_split(train_df, target=target_col)
     X_test, y_test = mft.X_y_split(test_df, target=target_col)
 
-
     model = fit_model(X_train, y_train, X_test, y_test)
 
-    eval_df = make_preds(X_test, target_col, model)
+    eval_df = mft.make_preds(X_test, y_test, target_col, model)
+    eval_df.to_csv("../results/eval_df.tsv", sep="\t")
+    
+    feat_imp_df = mft.get_rig_df(model['gradientboostingregressor'], 
+                                 X_train.columns.values)
+    feat_imp_df.to_csv("../results/feat_imp_df.tsv", sep="\t")

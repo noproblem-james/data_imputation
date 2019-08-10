@@ -43,6 +43,26 @@ def get_rig_df(scikit_model, x_cols):
     feat_imp_df = (pd.DataFrame.from_dict({"feature": np.array(x_cols), 
                                            "importance": scikit_model.feature_importances_})
                .set_index("feature")
-               .sort_values("importance", ascending=True)
+               .sort_values("importance", ascending=False)
               )
     return feat_imp_df
+
+def make_preds(X_test, y_test, target_col, fit_model):
+    y_hat = fit_model.predict(X_test)
+
+    eval_df = (pd.concat([y_test.reset_index(),
+                          pd.Series(y_hat, name="pred").round(2)], axis=1)
+               .set_index("api")
+               .rename(columns={target_col: "actual"})
+               .assign(resid=lambda x: x["pred"] - x["actual"])
+               .assign(perc_resid=lambda x: x["resid"] / x["actual"] * 100)
+               .assign(abs_resid=lambda x: x["resid"].abs())
+               .assign(abs_perc_resid=lambda x: x["abs_resid"] / x["actual"] * 100)
+                )
+
+    mape = eval_df.abs_perc_resid.mean()
+    mae = eval_df.abs_resid.mean()
+    mape_adj = eval_df.abs_resid.mean() / eval_df.actual.mean() * 100
+    print("MAE: ", mae, "\nMAPE: ", mape, "\nadj MAPE: ", mape_adj)
+
+    return eval_df
