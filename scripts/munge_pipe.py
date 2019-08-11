@@ -47,7 +47,8 @@ if __name__ == '__main__':
                     'length': {'min': 2000, 'max': float("inf")},
                     'total_num_stages': {'min': 5, 'max': float("inf")}}
 
-    model_features = ['total_num_stages',
+    model_features = [
+                     'total_num_stages',
                      'bakken_isopach_ft',
                      'fluid_per_ft',
                      'length',
@@ -58,10 +59,15 @@ if __name__ == '__main__':
                      'total_lbs_proppant',
                      'total_volume_bbls',
                      'tvd',
-                     'choke_size']
+                     'choke_size',
+                     "formation_bakken",
+                     "formation_three_forks"
+                     ]
 
     # munge the df
     full_df = munge_df(concat_df, coord_cols, target_col, model_features, thresh_dict)
+    
+    print(full_df.columns)
 
     #resplit into test and train and save
     train_df = (full_df.copy()
