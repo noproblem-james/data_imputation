@@ -18,7 +18,7 @@ def draw_feature_importance_tornado(feat_imp_df):
         text='importance:Q'
     )
 
-    return feat_imp_bars.configure_axis(labelFontSize=12, titleFontSize=20, labelFlush=False, labelLimit=40).configure_title(fontSize=30)
+    return feat_imp_bars.configure_axis(labelFontSize=12, titleFontSize=20, labelFlush=False, labelLimit=400).configure_title(fontSize=30)
 
 def draw_resid_dashboard(resids_df, target_units, cat_col, tooltip_features):
 
@@ -28,7 +28,6 @@ def draw_resid_dashboard(resids_df, target_units, cat_col, tooltip_features):
     max_pred = resids_df["pred"].max()* 1.1
     max_pred_act = max(max_act, max_pred)
     max_abs_resid = resids_df["abs_resid"].max()* 1.1
-    print(max_pred_act)
 
     ## Scatterplots
 
