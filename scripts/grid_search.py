@@ -1,6 +1,10 @@
 import pandas as pd
 import pickle
+<<<<<<< HEAD
+from sklearn.ensemble import GradientBoostingRegressor, ExtraTreesRegressor
+=======
 from sklearn.ensemble import GradientBoostingRegressor
+>>>>>>> 08c300d1bea6bb230179bcd532ecffb75a91ba4e
 from sklearn.preprocessing import StandardScaler
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
@@ -17,6 +21,11 @@ def fit_model(train_X, y_train, X_test, y_test, random_state=1984):
     gbr = GradientBoostingRegressor(random_state=random_state)
 
     mice = IterativeImputer(
+<<<<<<< HEAD
+                            # tol=0.1,
+                            estimator =ExtraTreesRegressor(n_estimators=10, random_state=0),
+=======
+>>>>>>> 08c300d1bea6bb230179bcd532ecffb75a91ba4e
                             random_state=random_state,
                             initial_strategy="median"
                             )
@@ -69,4 +78,8 @@ if __name__ == '__main__':
     
     feat_imp_df = mft.get_rig_df(model['gradientboostingregressor'], 
                                  X_train.columns.values)
+<<<<<<< HEAD
     feat_imp_df.to_csv("../results/feat_imp_df.tsv", sep="\t")
+=======
+    feat_imp_df.to_csv("../results/feat_imp_df.tsv", sep="\t")
+>>>>>>> 08c300d1bea6bb230179bcd532ecffb75a91ba4e

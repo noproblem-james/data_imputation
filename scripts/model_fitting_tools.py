@@ -8,8 +8,8 @@ def X_y_split(df, target):
     params: df, target variable (as string),
     returns: df_X, df_y
     '''
-    df_y = df[target]
-    df_X = df.drop(target, axis=1)
+    df_X = df.copy()
+    df_y = df_X.pop(target)
     return df_X, df_y
 
 
