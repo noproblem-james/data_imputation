@@ -1,6 +1,6 @@
 import pandas as pd
 import pickle
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor, ExtraTreesRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
@@ -17,6 +17,8 @@ def fit_model(train_X, y_train, X_test, y_test, random_state=1984):
     gbr = GradientBoostingRegressor(random_state=random_state)
 
     mice = IterativeImputer(
+                            # tol=0.1,
+                            estimator =ExtraTreesRegressor(n_estimators=10, random_state=0),
                             random_state=random_state,
                             initial_strategy="median"
                             )
