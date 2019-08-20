@@ -1,4 +1,4 @@
 notebooks/.ipynb_checkpoints/
 scripts/__pycache__/
 notebooks/*.json
-.idea
+.idea/
