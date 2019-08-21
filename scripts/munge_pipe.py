@@ -25,8 +25,10 @@ def munge_df(df, coord_cols=[], target_col="", blacklist_cols=[], thresh_dict={}
                  )
             .pipe(dmt.find_distance_to_nearest_neighbor, *coord_cols)
             .pipe(dmt.normalize_formation, "stimulated_formation", "producedpools")
+            # .query("spud_year > 2009")
             .drop(blacklist_cols, axis=1)
             .dropna(subset=[target_col])
+            .sort_index(axis=1)
             # .query("data_group == 'TEST' | spud_year > 2009")
              )
 
@@ -63,6 +65,10 @@ if __name__ == '__main__':
                      'grelev',
                      'kbelev',
                      'max_tvd',
+                     'min_tvd',
+                     'td',
+                     'bh_lng',
+                     'bh_lat',
                      'production_liquid_120',
                      'production_liquid_150',
                      'production_liquid_1825',
@@ -85,6 +91,11 @@ if __name__ == '__main__':
                      'qq',
                      'range',
                      'spud_date',
+                     # 'spud_year',
+                     'legs',
+                     # 'surface_lat',
+                     # 'surface_lng',
+                     'choke_size',
                      'township',
                      'type_treatment',
                      'well_status_date',
@@ -101,7 +112,7 @@ if __name__ == '__main__':
     train_df = (full_df.copy()
                        .query("data_group == 'TRAIN'")
                        .drop("data_group", axis=1)
-                       .query("spud_year > 2009")
+                       # .query("spud_year > 2009")
                )
 
     test_df =  (full_df.copy()
