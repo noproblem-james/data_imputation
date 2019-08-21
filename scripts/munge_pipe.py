@@ -1,7 +1,8 @@
 
 import pandas as pd
-import data_munging_tools as dmt
 from math import inf
+import data_munging_tools as dmt
+import munge_williston_data as mwd
 
 def munge_df(df, coord_cols=[], target_col="", blacklist_cols=[], thresh_dict={}):
     df = (df.copy()
@@ -10,7 +11,7 @@ def munge_df(df, coord_cols=[], target_col="", blacklist_cols=[], thresh_dict={}
             .assign(api = lambda x: x["api"].str.strip("US"))
             .set_index("api")
             .sort_index(axis=1)
-            .assign(length=lambda x: dmt.haversine_distance(x["surface_lat"],
+            .assign(length=lambda x: mwd.haversine_distance(x["surface_lat"],
                                                           x["surface_lng"],
                                                           x["bh_lat"],
                                                           x["bh_lng"])
@@ -20,16 +21,16 @@ def munge_df(df, coord_cols=[], target_col="", blacklist_cols=[], thresh_dict={}
                   # prop_per_ft=lambda x: x["total_lbs_proppant"] / x["length"],
                   # fluid_per_ft=lambda x: x["total_volume_bbls"]/ x["length"],
                   stage_spacing=lambda x: x["total_num_stages"] / x["length"],
-                  spud_year=lambda x: x["spud_date"].apply(lambda x: float(str(x).split("-")[0])),
-                  choke_size= lambda x: x["choke_size"].apply(dmt.parse_choke_size)
+                  spud_year=lambda x: x["spuddate"].apply(lambda x: float(str(x).split("-")[0])),
+                  choke_size= lambda x: x["choke_size"].apply(mwd.parse_choke_size)
                  )
-            .pipe(dmt.find_distance_to_nearest_neighbor, *coord_cols)
-            .pipe(dmt.normalize_formation, "stimulated_formation", "producedpools")
+            .pipe(mwd.find_distance_to_nearest_neighbor, *coord_cols)
+            .pipe(mwd.normalize_formation, "stimulated_formation", "producedpools")
             # .query("spud_year > 2009")
+            # .query("data_group == 'TEST' | spud_year > 2009")
             .drop(blacklist_cols, axis=1)
             .dropna(subset=[target_col])
             .sort_index(axis=1)
-            # .query("data_group == 'TEST' | spud_year > 2009")
              )
 
     return df
@@ -39,7 +40,6 @@ if __name__ == '__main__':
     # Load the dataframes and concat them together
     test_df = pd.read_csv('../data/cleaned-input.test.tsv', sep='\t', low_memory=False)
     train_df = pd.read_csv('../data/cleaned-input.training.tsv', sep='\t', low_memory=False)
-
 
     print("train_df columns: ", train_df.columns.tolist())
     concat_df = pd.concat([test_df.assign(data_group="TEST"),

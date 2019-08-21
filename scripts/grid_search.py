@@ -8,16 +8,17 @@ from sklearn.impute import IterativeImputer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.compose import ColumnTransformer
-
 import model_fitting_tools as mft
 
 def _track_aux_cols(df, aux_cols):
+    # helper function, because cannot operate on column names after imputation step
     all_cols = df.columns
     aux_idx = [df.columns.get_loc(col) for col in aux_cols]
     training_cols = df.drop(aux_cols, axis=1).columns
     return all_cols, aux_idx, training_cols
 
-def write_results(gscv, X_test, y_test, training_cols, target_col):
+def write_results(gscv, X_test, y_test, training_cols, target_col, save_model=False):
+    # helper function to write results of gridsearchcv to disk
     model = gscv.best_estimator_
 
     eval_df = mft.make_preds(X_test, y_test, target_col, model)
@@ -32,11 +33,17 @@ def write_results(gscv, X_test, y_test, training_cols, target_col):
 
     gscv_results_df.to_csv("../results/gscv_results_df.tsv", sep="\t")
 
-        # filename = '../results/finalized_model.pickle'
-        # pickle.dump(model, open(filename, 'wb'))
+    if save_model == True:
+        filename = '../results/finalized_model.pickle'
+        pickle.dump(model, open(filename, 'wb'))
 
 
-def fit_model(train_df, test_df, target_col, aux_cols, random_state=1984):
+def fit_model(train_df, test_df, target_col, aux_cols, random_state=1984, test_only=False):
+    '''
+    train a model using gridsearchcv, using iterative imputation with auxillary features.
+    use best hyperparamters to test model against holdout set.
+    write results to disk.
+    '''
 
     X_train, y_train = mft.X_y_split(train_df, target=target_col)
     X_test, y_test = mft.X_y_split(test_df, target=target_col)
@@ -70,19 +77,21 @@ def fit_model(train_df, test_df, target_col, aux_cols, random_state=1984):
                     )
 
 
-    # gbr_grid_params = {
-    #                   'n_estimators': [100],
-    #                   'learning_rate': [0.1],
-    #                   'max_depth': [4],
-    #                   'min_samples_leaf': [20],
-    #                   }
-
     gbr_grid_params = {
                   'n_estimators': [300, 500],
                   'learning_rate': [0.05, 0.01],
                   'max_depth': [8, 12, 16],
                   'min_samples_leaf': [5, 10, 20],
                   }
+
+
+    if test_only == True:
+        gbr_grid_params = {
+                          'n_estimators': [5, 10],
+                          'learning_rate': [0.1],
+                          'max_depth': [4],
+                          'min_samples_leaf': [20],
+                          }
 
     pipe_grid = {'gbr__' + k : v for  k, v in gbr_grid_params.items()}
 
@@ -100,7 +109,8 @@ def fit_model(train_df, test_df, target_col, aux_cols, random_state=1984):
     best_params = gscv.best_params_
     print("Best Params: ", best_params)
 
-    write_results(gscv, X_test, y_test, training_cols, target_col)
+    if test_only == False:
+        write_results(gscv, X_test, y_test, training_cols, target_col)
 
 
 
@@ -110,6 +120,6 @@ if __name__ == '__main__':
     target_col = "production_liquid_180"
     aux_cols =  ['surface_lat', 'surface_lng', 'spud_year']
 
-    print(train_df.head())
-
     fit_model(train_df, test_df, target_col, aux_cols, random_state=1984)
+
+    print("DONE")
