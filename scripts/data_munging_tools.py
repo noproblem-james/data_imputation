@@ -4,11 +4,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 from scipy.stats import entropy
-from sklearn.metrics.pairwise import euclidean_distances
-
-
 
 def calc_entropy(df):
+    # select categorical columns, use scipy stats to calculate entropy of
+    # each column's value counts
     cat_df = df.copy().select_dtypes("O")
     result = []
     for col in cat_df.columns:
@@ -20,6 +19,9 @@ def calc_entropy(df):
     return df_result
 
 def make_df_summary(df, target_col=None):
+    '''
+    create summary statistics for dataframe
+    '''
     perc_missing = df.isnull().sum() / df.shape[0] * 100
     dtype = df.dtypes
     nunique = df.nunique()
@@ -46,54 +48,6 @@ def make_df_summary(df, target_col=None):
                  )
 
     return df_summary
-
-
-def inspect_cat_plots(df, cat_col, target_col):
-    """
-    Pass a dataframe, a categorical feature, and the (continuous) target
-
-    Returns a two barcharts for each categorical feature:
-     1. a count of the number of unique values in that column
-     2. the median score of the target column fo each unique value in that column.
-     """
-    sub_df = df.filter([cat_col, target_col]).assign(**{cat_col: lambda x: x[cat_col].fillna("NaN")})
-    fig, ax = plt.subplots(1, 2, figsize=(18, 7))
-    sns.countplot(data=sub_df, x=cat_col, ax=ax[0])
-
-    for item in ax[0].get_xticklabels() + ax[1].get_xticklabels():
-        item.set_rotation(45)
-
-    sns.boxplot(data=sub_df, x=cat_col, y=target_col, ax=ax[1])
-    plt.show()
-
-
-def make_strip_plots(df, col, lims_dict):
-    lims = lims_dict[col]
-    sub_df = df.filter([col])
-    fig, ax = plt.subplots(1, 2, figsize=(18, 7))
-    sns.stripplot(data=sub_df, x=col, ax=ax[0])
-
-    print(lims)
-
-    if lims["max"] < float("inf"):
-        upper = lims["max"]
-        ax[0].axvline(upper, color="r")
-        before_filter = sub_df.shape[0]
-        queried_df = sub_df.query(f"{col} < @upper")
-        after_filter = queried_df.shape[0]
-        print(before_filter - after_filter)
-        sns.stripplot(data=queried_df, x=col, ax=ax[1])
-
-    if lims["min"] > 0:
-        lower = lims["min"]
-        ax[0].axvline(lower, color="r")
-        before_filter = sub_df.shape[0]
-        queried_df = sub_df.query(f"{col} > @lower")
-        after_filter = queried_df.shape[0]
-        print(before_filter - after_filter)
-        sns.stripplot(data=queried_df, x=col, ax=ax[1])
-
-    plt.show()
 
 
 def drop_blacklist(df, exceptions={}, blacklist_patterns=[]):
@@ -134,8 +88,6 @@ def remove_outiers(df, lims_dict):
 
         df.loc[both_mask, feature] = np.nan
     return df
-
-
 
 def drop_high_nulls(df, exceptions={}, cutoff=0.5):
     print(f"Shape before high null removal: {df.shape}")
@@ -188,113 +140,49 @@ def reduce_cardinality(df, cols=None, cardinality=5, threshold=15):
 
     return df
 
+def inspect_cat_plots(df, cat_col, target_col):
+    """
+    Pass a dataframe, a categorical feature, and the (continuous) target
+
+    Returns a two barcharts for each categorical feature:
+     1. a count of the number of unique values in that column
+     2. the median score of the target column fo each unique value in that column.
+     """
+    sub_df = df.filter([cat_col, target_col]).assign(**{cat_col: lambda x: x[cat_col].fillna("NaN")})
+    fig, ax = plt.subplots(1, 2, figsize=(18, 7))
+    sns.countplot(data=sub_df, x=cat_col, ax=ax[0])
+
+    for item in ax[0].get_xticklabels() + ax[1].get_xticklabels():
+        item.set_rotation(45)
+
+    sns.boxplot(data=sub_df, x=cat_col, y=target_col, ax=ax[1])
+    plt.show()
 
 
-def calc_midpoint(df, lat_1_col, lng_1_col, lat_2_col, lng_2_col):
-    df = df.copy().filter([lat_1_col, lng_1_col, lat_2_col, lng_2_col])
-    dist_x = df[lng_2_col] - df[lng_1_col]
-    dist_y = df[lat_2_col] - df[lat_1_col]
-    half_x = dist_x / 2
-    half_y = dist_y / 2
-    mid_x = df[lng_1_col] + half_x
-    mid_y = df[lat_1_col] + half_y
-    df["midpoint_lat"] = mid_y
-    df["midpoint_lng"] = mid_x
-    return df
+def make_strip_plots(df, col, lims_dict):
+    lims = lims_dict[col]
+    sub_df = df.filter([col])
+    fig, ax = plt.subplots(1, 2, figsize=(18, 7))
+    sns.stripplot(data=sub_df, x=col, ax=ax[0])
 
-## TODO Update this function to use Haversine distnace
-def find_distance_to_nearest_neighbor(df, lat_col_1, lng_1_col, lat_2_col, lng_2_col):
-    midpoint_df = (df.copy()
-                       .filter([lat_col_1, lng_1_col, lat_2_col, lng_2_col])
-                       .pipe(calc_midpoint, lat_col_1, lng_1_col, lat_2_col, lng_2_col)
-                       .filter(["midpoint_lat", "midpoint_lng"])
-                       .dropna()
-                  )
-    euclid_dist_df = pd.DataFrame(euclidean_distances(midpoint_df, midpoint_df), index=midpoint_df.index,
-                                  columns=midpoint_df.index)
-    no_self = euclid_dist_df[euclid_dist_df != 0].copy()
-    df["shortest_dist"] = no_self.min(axis=1) * 1000
-    return df
+    print(lims)
 
+    if lims["max"] < float("inf"):
+        upper = lims["max"]
+        ax[0].axvline(upper, color="r")
+        before_filter = sub_df.shape[0]
+        queried_df = sub_df.query(f"{col} < @upper")
+        after_filter = queried_df.shape[0]
+        print(before_filter - after_filter)
+        sns.stripplot(data=queried_df, x=col, ax=ax[1])
 
-def haversine_distance(s_lat, s_lng, e_lat, e_lng):
-   '''
-   https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
-   '''
-   R = 3959.87433  # approximate radius of earth in mi
+    if lims["min"] > 0:
+        lower = lims["min"]
+        ax[0].axvline(lower, color="r")
+        before_filter = sub_df.shape[0]
+        queried_df = sub_df.query(f"{col} > @lower")
+        after_filter = queried_df.shape[0]
+        print(before_filter - after_filter)
+        sns.stripplot(data=queried_df, x=col, ax=ax[1])
 
-   s_lat = s_lat*np.pi/180.0
-   s_lng = np.deg2rad(s_lng)
-   e_lat = np.deg2rad(e_lat)
-   e_lng = np.deg2rad(e_lng)
-
-   d = np.sin((e_lat - s_lat)/2)**2 + np.cos(s_lat)*np.cos(e_lat) * np.sin((e_lng - s_lng)/2)**2
-
-   return 2 * R * np.arcsin(np.sqrt(d)) * 5280
-
-
-def parse_choke_size(x):
-    replace_dict = {"a": "6", "s": "5", "i": "1", "0pen": "1", "b": "6", "g": "9"}
-
-    if x == "na":
-        # presumably it has no choke, ie it is open, therefore 1
-        return 1
-
-    if type(x) == float and np.isnan(x):
-        return x
-
-    if type(x) != str:
-        print(x, type(x))
-        return np.nan
-
-    if "/" not in x:
-        print(x)
-        return np.nan
-
-    for k, v in replace_dict.items():
-        x = x.replace(k, v)
-
-    x = x.strip("'").strip("_").strip(" ").strip("'")
-
-    fraction = x.split("/")
-    if len(fraction) != 2:
-        return np.nan
-    num, denom = fraction[0], fraction[1]
-
-    try:
-        num = int(num)
-        denom = int(denom)
-
-    except:
-#         print(f"couldnt_convert {num} / {denom}")
-        return np.nan
-
-
-    if num == denom:
-        # 64/64 would be open ratio, but assume it is open
-        return 1
-
-    elif num > denom:
-        # something went wrong. cant be more open than open.
-        return np.nan
-
-    else:
-        decimal = num / denom
-        return decimal
-
-
-def normalize_formation_helper(x):
-    if x == "bakken":
-        return 1
-    elif x == "three forks":
-        return 0
-    else:
-        return np.nan
-
-def normalize_formation(df, primary_col, secondary_col):
-    df = df.copy()
-    fill_values = df[secondary_col].str.lower().apply(lambda x: normalize_formation_helper(x))
-    df["target_formation"] = df[primary_col].apply(lambda x: normalize_formation_helper(x)).fillna(fill_values)
-#     df = pd.get_dummies(data=df, columns=["target_formation"], prefix="formation")
-    df.drop([primary_col, secondary_col], axis=1, inplace=True)
-    return df
+    plt.show()

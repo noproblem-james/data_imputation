@@ -13,18 +13,8 @@ def X_y_split(df, target):
     return df_X, df_y
 
 
-def flag_test_train(df_train, df_test, string_flag=True):
-    '''
-    #create two flags for test and train, where one flag is a string, the other is a binary
-    '''
-    df_train["flag"] = 0
-    df_test["flag"] = 1
-    if string_flag == True:
-        df_train["flag_str"] = "train"
-        df_test["flag_str"] = "test"
-
-
 def eval_model(model, X_test, y_test, y_train):
+    # generate error metrics for a model
     naive_preds = np.ones(y_test.shape)*np.mean(y_train.values)
     training_mean_mse = mean_squared_error(y_test, naive_preds)
     training_mean_rmse = training_mean_mse ** 0.5
@@ -40,15 +30,17 @@ def eval_model(model, X_test, y_test, y_train):
 
 
 def get_rig_df(scikit_model, x_cols):
-    feat_imp_df = (pd.DataFrame.from_dict({"feature": np.array(x_cols), 
+    # create a dataframe of feature importances from a scikit model
+    feat_imp_df = (pd.DataFrame.from_dict({"feature": np.array(x_cols),
                                            "importance": scikit_model.feature_importances_})
                .set_index("feature")
                .sort_values("importance", ascending=False)
               )
     return feat_imp_df
 
-def make_preds(X_test, y_test, target_col, fit_model):
-    y_hat = fit_model.predict(X_test)
+def make_preds(X_test, y_test, target_col, fitted_model):
+    # create a dataframe of predictions vs actuals, using a holdout set
+    y_hat = fitted_model.predict(X_test)
 
     eval_df = (pd.concat([y_test.reset_index(),
                           pd.Series(y_hat, name="pred").round(2)], axis=1)
