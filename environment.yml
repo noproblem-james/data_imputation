@@ -1,4 +1,4 @@
-name: my_env
+name: data_imputation
 channels:
   - conda-forge
   - defaults
@@ -180,4 +180,3 @@ dependencies:
   - zlib=1.2.11=h01d97ff_1005
   - zstd=1.4.0=ha9f0a20_0
 prefix: /Users/jameshelfrich/miniconda3/envs/my_env
-
