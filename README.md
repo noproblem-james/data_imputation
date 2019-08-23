@@ -14,9 +14,16 @@ Some things I hope are helpful to others:
 - `/notebooks/imputation_exploration.ipynb`: A jupyter notebook for describing patterns of data missingness
 - `/scripts/grid_search.py`: A script for showing how to use modern multiple-imputation techniques with auxillary features inside of a scikit pipeline within a cross-validated grid search
 
-## How to build
-Activate the conda environment provided in `environment.yaml` file in the root directory of this repo.
-You can activate it by entering the following command into the terminal:
+## How to use this repo
+Activate the conda environment provided in `environment.yaml` file in the root directory of this repo. D
+You can do this by entering the following command into the terminal:
 ```
 $ conda env create -f environment.yaml
 ```
+
+If you just want to see some of the results and data visualizations, here are some nbviewer links:
+- [https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/EDA.ipynb](Exploratory Data Analysis)
+- [https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/imputation_experimentation.ipynb](Missing Data Imputation)
+- [https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/model_eval.ipynb](Model Evaluation)
+
+
