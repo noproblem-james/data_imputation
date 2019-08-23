@@ -22,8 +22,8 @@ $ conda env create -f environment.yaml
 ```
 
 If you just want to see some of the results and data visualizations, here are some nbviewer links:
-- [https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/EDA.ipynb](Exploratory Data Analysis)
-- [https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/imputation_experimentation.ipynb](Missing Data Imputation)
-- [https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/model_eval.ipynb](Model Evaluation)
+- [Exploratory Data Analysis](https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/EDA.ipynb)
+- [Missing Data Imputation](https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/imputation_experimentation.ipynb)
+- [Model Evaluation](https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/model_eval.ipynb)
 
 
