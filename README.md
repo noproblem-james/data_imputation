@@ -16,3 +16,7 @@ Some things I hope are helpful to others:
 
 ## How to build
 Activate the conda environment provided in `environment.yaml` file in the root directory of this repo.
+You can activate it by entering the following command into the terminal:
+```
+$ conda env create -f environment.yaml
+```
