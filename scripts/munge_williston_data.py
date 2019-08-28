@@ -1,49 +1,64 @@
 import pandas as pd
 import numpy as np
-from sklearn.metrics.pairwise import euclidean_distances
+import math
+from sklearn.metrics.pairwise import haversine_distances
 
-def calc_midpoint(df, lat_1_col, lng_1_col, lat_2_col, lng_2_col):
-    df = df.copy().filter([lat_1_col, lng_1_col, lat_2_col, lng_2_col])
-    dist_x = df[lng_2_col] - df[lng_1_col]
-    dist_y = df[lat_2_col] - df[lat_1_col]
-    half_x = dist_x / 2
-    half_y = dist_y / 2
-    mid_x = df[lng_1_col] + half_x
-    mid_y = df[lat_1_col] + half_y
-    df["midpoint_lat"] = mid_y
-    df["midpoint_lng"] = mid_x
+def midpoint_helper(lat1, lon1, lat2, lon2):
+    '''
+    credit: https://github.com/samuelbosch/blogbits/blob/master/geosrc/GreatCircle.py
+    '''
+    ## little shortcut
+    if lon1 == lon2: return (lat1 + lat2) / 2 , lon1
+    if lat1 == lat2: return lat1, (lon1 + lon2) / 2
+
+    lon1, lat1 = math.radians(lon1), math.radians(lat1)
+    lon2, lat2 = math.radians(lon2), math.radians(lat2)
+    dLon = lon2-lon1
+
+    Bx = math.cos(lat2) * math.cos(dLon)
+    By = math.cos(lat2) * math.sin(dLon)
+    lat3 = math.atan2(math.sin(lat1) + math.sin(lat2),
+                      math.sqrt((math.cos(lat1) + Bx)*(math.cos(lat1) + Bx) \
+                                + By * By)
+                     )
+    lon3 = lon1 + math.atan2(By, math.cos(lat1) + Bx)
+    return math.degrees(lat3), math.degrees(lon3)
+
+def append_midpoints(df, latcol_1, lngcol_1, latcol_2, lngcol_2, index_col):
+    df = df.copy()
+    vfunc = vfunc = np.vectorize(midpoint_helper)
+
+    mid_lat, mid_lng = vfunc(df[latcol_1],
+                         df[lngcol_1],
+                         df[latcol_2],
+                         df[lngcol_2])
+
+    df = pd.concat([df.reset_index(),
+                              pd.Series(mid_lat, name="mid_lat"),
+                              pd.Series(mid_lng, name="mid_lng")], axis=1).set_index(index_col)
+
     return df
 
-## TODO Update this function to use Haversine distnace
-def find_distance_to_nearest_neighbor(df, lat_col_1, lng_1_col, lat_2_col, lng_2_col):
-    midpoint_df = (df.copy()
-                       .filter([lat_col_1, lng_1_col, lat_2_col, lng_2_col])
-                       .pipe(calc_midpoint, lat_col_1, lng_1_col, lat_2_col, lng_2_col)
-                       .filter(["midpoint_lat", "midpoint_lng"])
-                       .dropna()
-                  )
-    euclid_dist_df = pd.DataFrame(euclidean_distances(midpoint_df, midpoint_df), index=midpoint_df.index,
-                                  columns=midpoint_df.index)
-    no_self = euclid_dist_df[euclid_dist_df != 0].copy()
-    df["shortest_dist"] = no_self.min(axis=1) * 1000
+def get_pairwise_dists(df, lat_col, lng_col):
+    lat = df[lat_col].apply(math.radians)
+    lng = df[lng_col].apply(math.radians)
+    R = 3959.87433 * 5280 # approximate radius of earth in ft (mi * ft/mi)
+    pairwise_dists_df = pd.DataFrame(haversine_distances(pd.DataFrame([lat, lng]).T),
+                                     index=df.index,
+                                     columns=df.index)
+    return pairwise_dists_df * R # (converting radians to feet)
+
+def get_dist_to_nn(pairwise_dists):
+    non_zeros = pairwise_dists[pairwise_dists != 0].copy()
+    min_dists = non_zeros.min()
+    return min_dists
+
+def append_min_dist_col(df, lat_col, lng_col):
+    df = df.copy()
+    pairwise_dists_df = get_pairwise_dists(df, lat_col, lng_col)
+    min_dists = get_dist_to_nn(pairwise_dists_df)
+    df["min_dist"] = min_dists
     return df
-
-
-def haversine_distance(s_lat, s_lng, e_lat, e_lng):
-   '''
-   https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
-   '''
-   R = 3959.87433  # approximate radius of earth in mi
-
-   s_lat = s_lat*np.pi/180.0
-   s_lng = np.deg2rad(s_lng)
-   e_lat = np.deg2rad(e_lat)
-   e_lng = np.deg2rad(e_lng)
-
-   d = np.sin((e_lat - s_lat)/2)**2 + np.cos(s_lat)*np.cos(e_lat) * np.sin((e_lng - s_lng)/2)**2
-
-   return 2 * R * np.arcsin(np.sqrt(d)) * 5280
-
 
 def parse_choke_size(x):
     replace_dict = {"a": "6", "s": "5", "i": "1", "0pen": "1", "b": "6", "g": "9"}
@@ -87,7 +102,7 @@ def parse_choke_size(x):
         return 1
 
     elif num > denom:
-        # something went wrong. cant be more open than open.
+        # something went wrong. cant be more open than fully open.
         return np.nan
 
     else:
@@ -107,6 +122,5 @@ def normalize_formation(df, primary_col, secondary_col):
     df = df.copy()
     fill_values = df[secondary_col].str.lower().apply(lambda x: normalize_formation_helper(x))
     df["target_formation"] = df[primary_col].apply(lambda x: normalize_formation_helper(x)).fillna(fill_values)
-#     df = pd.get_dummies(data=df, columns=["target_formation"], prefix="formation")
     df.drop([primary_col, secondary_col], axis=1, inplace=True)
     return df
