@@ -20,7 +20,6 @@ def make_data_dict(fp='../data/AttributeDescriptions.html'):
                  .pipe(fill_data_dict)
                  )
 
-    # print(data_dict_df.head())
     return data_dict_df
 
 
@@ -45,7 +44,7 @@ def fill_data_dict(data_dict_df):
     data_dict_df.loc["spud_date", "using"] = False # Not using string version
     data_dict_df.loc["spud_year", ["using", "category", "description", "notes"]] = \
         [True, "metadata", "year well was completed", "engineered feature, using for imputation purposes"]
-    data_dict_df.loc["data_group", :] = ["metadata", "train or test", False, "train-test flag"]
+    data_dict_df.loc["data_group", :] = ["metadata", "train or test", "train-test flag"]
 
 
     # Target
@@ -173,29 +172,19 @@ def make_full_df():
                            train_df.assign(data_group="TRAIN")
                           ])
      return full_df
-     # full_df.to_csv("../data/full_df.tsv", sep="\t")
-
 
 
 if __name__ == '__main__':
 
-    # data_dict_df = make_data_dict()
-    # print(data_dict_df.columns)
-    # data_dict_df.to_csv("../data/data_dict_df.tsv", sep="\t")
-
     full_df = make_full_df()
-    # coord_cols = ['surface_lat', 'surface_lng', 'bh_lat', 'bh_lng']
-    # inspect_df = make_inspect_df(full_df, coord_cols)
-    # print(inspect_df.columns)
-    # inspect_df.to_csv("../data/inspect_df.tsv", sep="\t")
-
 
     with open('../scripts/instructions.json') as fp:
         instructions_dict = json.load(fp)
 
     model_df = make_model_df(full_df, **instructions_dict)
-    print(model_df.columns)
 
+    test_df = model_df.copy().query("data_group == 'TEST'").drop("data_group", axis=1)
+    test_df.to_csv("../data/test_df.tsv", sep="\t")
 
-
-
+    train_df = model_df.copy().query("data_group == 'TRAIN'").drop("data_group", axis=1)
+    test_df.to_csv("../data/train_df.tsv", sep="\t")
