@@ -17,7 +17,7 @@ Some things I hope are helpful to others:
 
 ## How to use this repo
 Activate the conda environment provided in `environment.yaml` file in the root directory of this repo.
-You can do this by entering the following command into the terminal:
+You can do this by entering the following command into the terminal (when current directory is the root of the repo):
 ```
 $ conda env create -f environment.yaml
 ```
