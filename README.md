@@ -16,7 +16,7 @@ Some things I hope are helpful to others:
 - `/scripts/grid_search.py`: A script for showing how to use modern multiple-imputation techniques with auxillary features inside of a scikit pipeline within a cross-validated grid search
 
 ## How to use this repo
-Activate the conda environment provided in `environment.yaml` file in the root directory of this repo. D
+Activate the conda environment provided in `environment.yaml` file in the root directory of this repo.
 You can do this by entering the following command into the terminal:
 ```
 $ conda env create -f environment.yaml
