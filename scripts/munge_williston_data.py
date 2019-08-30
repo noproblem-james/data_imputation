@@ -3,7 +3,7 @@ import numpy as np
 import math
 from sklearn.metrics.pairwise import haversine_distances
 
-def midpoint_helper(lat1, lon1, lat2, lon2):
+def haver_midpoint_helper(lat1, lon1, lat2, lon2):
     '''
     credit: https://github.com/samuelbosch/blogbits/blob/master/geosrc/GreatCircle.py
     '''
@@ -26,12 +26,14 @@ def midpoint_helper(lat1, lon1, lat2, lon2):
 
 def append_midpoints(df, latcol_1, lngcol_1, latcol_2, lngcol_2, index_col):
     df = df.copy()
-    vfunc = vfunc = np.vectorize(midpoint_helper)
+    vfunc = np.vectorize(haver_midpoint_helper)
 
-    mid_lat, mid_lng = vfunc(df[latcol_1],
-                         df[lngcol_1],
-                         df[latcol_2],
-                         df[lngcol_2])
+    mid_lat, mid_lng = vfunc(
+                            df[latcol_1],
+                            df[lngcol_1],
+                            df[latcol_2],
+                            df[lngcol_2]
+                            )
 
     df = pd.concat([df.reset_index(),
                               pd.Series(mid_lat, name="mid_lat"),
@@ -59,6 +61,40 @@ def append_min_dist_col(df, lat_col, lng_col):
     min_dists = get_dist_to_nn(pairwise_dists_df)
     df["min_dist"] = min_dists
     return df
+
+
+def haver_dist_helper(lat1, lon1, lat2, lon2):
+    """
+    source: https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    R = 3959.87433 * 5280  # approximate radius of earth in ft (mi * ft/mi)
+    return c * R
+
+def append_length_col(df, latcol_1, lngcol_1, latcol_2, lngcol_2, index_col):
+    df = df.copy()
+    vfunc = np.vectorize(haver_dist_helper)
+
+    dists = vfunc(
+                  df[latcol_1],
+                  df[lngcol_1],
+                  df[latcol_2],
+                  df[lngcol_2]
+                            )
+
+    df = pd.concat([df.reset_index(), pd.Series(dists, name="length")], axis=1).set_index(index_col)
+
+    return df
+
 
 def parse_choke_size(x):
     replace_dict = {"a": "6", "s": "5", "i": "1", "0pen": "1", "b": "6", "g": "9"}
@@ -121,6 +157,6 @@ def normalize_formation_helper(x):
 def normalize_formation(df, primary_col, secondary_col):
     df = df.copy()
     fill_values = df[secondary_col].str.lower().apply(lambda x: normalize_formation_helper(x))
-    df["target_formation"] = df[primary_col].apply(lambda x: normalize_formation_helper(x)).fillna(fill_values)
-    df.drop([primary_col, secondary_col], axis=1, inplace=True)
+    df[primary_col] = df[primary_col].apply(lambda x: normalize_formation_helper(x)).fillna(fill_values)
+    # df.drop([primary_col, secondary_col], axis=1, inplace=True)
     return df
