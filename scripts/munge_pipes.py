@@ -44,7 +44,8 @@ def fill_data_dict(data_dict_df):
     data_dict_df.loc["spud_date", "using"] = False # Not using string version
     data_dict_df.loc["spud_year", ["using", "category", "description", "notes"]] = \
         [True, "metadata", "year well was completed", "engineered feature, using for imputation purposes"]
-    data_dict_df.loc["data_group", :] = ["metadata", "train or test", "train-test flag"]
+    data_dict_df.loc["data_group", ["using", "category", "description", "notes"]] = \
+        ["False", "metadata", "train or test", "train-test flag"]
 
 
     # Target
@@ -65,7 +66,9 @@ def fill_data_dict(data_dict_df):
             "notes": "engineered feature"}
         new_location_rows.append(row)
 
-    data_dict_df.append(pd.DataFrame(pd.DataFrame(new_location_rows).set_index("field_name")))
+    data_dict_df = data_dict_df.append(pd.DataFrame(pd.DataFrame(new_location_rows).set_index("field_name")))
+
+    # print(data_dict_df.tail())
 
 
     data_dict_df.loc[data_dict_df.category == 'Location', ["using"]] = False
@@ -90,8 +93,8 @@ def fill_data_dict(data_dict_df):
     data_dict_df.loc[data_dict_df.category == 'CompletionDesign', "notes"] = "total completion"
     data_dict_df.loc[["legs", "choke_size", "num_pools_produced"], "category"] = "CompletionDesign"
     data_dict_df.loc[data_dict_df.category == 'CompletionDesign', "using"] = True
-    data_dict_df.loc[
-        ["type_treatment", "legs", "num_pools_produced"], ["using", "notes"]] = False, "no meaningful variation"
+    data_dict_df.loc[["type_treatment", "legs", "num_pools_produced"], ["using", "notes"]] = \
+        False, "no meaningful variation"
 
     # Add engineered features
     new_rows = []
