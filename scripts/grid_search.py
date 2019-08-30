@@ -120,6 +120,8 @@ if __name__ == '__main__':
     target_col = "production_liquid_180"
     aux_cols =  ['surface_lat', 'surface_lng', 'spud_year']
 
-    fit_model(train_df, test_df, target_col, aux_cols, random_state=1984)
+    print(train_df.shape, train_df.columns)
+    print(test_df.shape)
+    # fit_model(train_df, test_df, target_col, aux_cols, random_state=1984)
 
     print("DONE")
