@@ -68,9 +68,6 @@ def fill_data_dict(data_dict_df):
 
     data_dict_df = data_dict_df.append(pd.DataFrame(pd.DataFrame(new_location_rows).set_index("field_name")))
 
-    # print(data_dict_df.tail())
-
-
     data_dict_df.loc[data_dict_df.category == 'Location', ["using"]] = False
     data_dict_df.loc[["surface_lat", "surface_lng"], ["using", "notes"]] = [True, "using for imputation purposes"]
 
