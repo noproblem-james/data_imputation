@@ -187,4 +187,8 @@ if __name__ == '__main__':
     test_df.to_csv("../data/test_df.tsv", sep="\t")
 
     train_df = model_df.copy().query("data_group == 'TRAIN'").drop("data_group", axis=1)
+<<<<<<< HEAD
     train_df.to_csv("../data/train_df.tsv", sep="\t")
+=======
+    test_df.to_csv("../data/train_df.tsv", sep="\t")
+>>>>>>> master
