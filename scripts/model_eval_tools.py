@@ -90,4 +90,4 @@ def draw_resid_dashboard(resids_df, target_units, cat_col, tooltip_features):
 
     dash = alt.VConcatChart(data=resids_df, vconcat=(scatterplots, bar_charts))
 
-    return dash.configure_axis(labelFontSize=15, titleFontSize=15, labelFlush=True, labelLimit=400).configure_title(fontSize=20)
+    return dash.configure_axis(labelFontSize=13, titleFontSize=15, labelFlush=True, labelLimit=100).configure_title(fontSize=20)

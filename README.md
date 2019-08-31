@@ -1,4 +1,3 @@
-
 # Predicting Well Production and Dealing with Missing Data
 
 This code is used to perform data exploration, data munging, model-building, and model evaluation, while paying special attention to the problem of missing data.
@@ -26,3 +25,5 @@ If you just want to see some of the results and data visualizations, here are so
 - [Exploratory Data Analysis](https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/EDA.ipynb)
 - [Missing Data Imputation](https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/imputation_experiment.ipynb)
 - [Model Evaluation](https://nbviewer.jupyter.org/github/noproblem-james/data_imputation/blob/develop/notebooks/model_eval.ipynb)
+![](images/resid_dash.gif)
+
